@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
+        {% set current_url = app.request.scheme ~ '://' ~ app.request.httpHost ~ app.request.requestUri %}
+        {% block header %}
+            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">
+                        <img src="https://cdn.discordapp.com/attachments/785479657909911562/1166360565271240765/be3a17fb-f928-4c41-a7c6-ff1edf50be98.jpg?ex=654a34ec&is=6537bfec&hm=c659b28ffe648d8d81c49b4b3d494add0dd924ad1a4b02ed7d56c3452dd3136d&" alt="Logo" width="30" height="30" class="d-inline-block align-text-top logo">
+                        Cake's Liveticker
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="http://liveticker.localhost">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                {% if current_url starts with 'http://liveticker.localhost/f1' %}
+                                    <a class="nav-link" href="/soccer/bl1/2023">Bundesliga</a>
+                                {% elseif current_url starts with 'http://liveticker.localhost/soccer' %}
+                                    <a class="nav-link" href="/f1/2023">Formula 1</a>
+                                {% else %}
+                                    <a class="nav-link" href="/soccer/bl1/2023">Bundesliga</a>
+                            <li class="nav-item">
+                                    <a class="nav-link" href="/f1/2023">Formula 1</a>
+                            </li>
+                                {% endif %}
+                            {% if app.user and not ('favteamform' in current_url) %}
+                            <li class="nav-item">
+                                <a class="nav-link" aria-current="page" href="/favteamform/">Add Favorite Team</a>
+                            </li>
+                            {% endif %}
+                            <li class="nav-item">
+                                <a class="nav-link" aria-current="page" href="https://discord.com/api/oauth2/authorize?client_id=1148979618481709056&permissions=549755866112&scope=bot">Discord Bot</a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav ms-auto">
+                            {% if app.user %}
+                            <li class="nav-item">
+                                <a class="nav-link active">{{ app.user.email }}</a>
+                            </li>
+                            {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/register">Register</a>
+                            </li>
+                            {% endif %}
+                            <li class="nav-item">
+                                <a
+                                        class="nav-link"
+                                        href="/{{ app.user ? 'logout' : 'login' }}"
+                                        @click="isOpen = false">
+                                    {{ app.user ? 'Logout' : 'Login' }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        {% endblock %}
+        {% block stylesheets %}
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+        {% endblock %}
+        {% block javascripts %}
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+        {% endblock %}
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+    </body>
+</html>

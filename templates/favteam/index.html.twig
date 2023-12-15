@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <style>
+        .img-with-text {
+            text-align: center
+        }
+        .img-with-text img {
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        .favteamButton{
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+
+    <div id="favteamButtons" style="display: flex; flex-wrap: wrap; justify-content: space-around;">
+        {% for row in table %}
+            <button class="favteamButton img-with-text" data-teamid="{{ row['TeamID'] }}" style="flex: 0 0 auto; margin: 10px; height: 100px; width: 100px;">
+                <img src="{{ row['Badge'] }}" alt="{{ row['Name'] }}" style="width: 30px; height: 30px;">
+                {{ row['Name'] }}
+            </button>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.getElementById('favteamButtons').addEventListener('click', function(e) {
+            var target = e.target;
+            if (target.classList.contains('favteamButton')) {
+                var teamId = target.dataset.teamid;
+                saveFavTeam(teamId);
+            }
+        });
+        function saveFavTeam(teamId) {
+            // Ersetzen Sie '/saveFavTeam' durch die URL Ihrer API
+            fetch('/saveFavTeam', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ teamId: teamId }),
+            })
+                .then(response => response.text())  // Verwenden Sie response.text() anstelle von response.json()
+                .then(data => {
+                    alert(data);
+                    // Da die Antwort jetzt HTML ist, können Sie sie nicht wie JSON behandeln
+                    // Sie können das HTML jedoch im DOM anzeigen oder mit einer HTML-Verarbeitungsbibliothek analysieren
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+{% endblock %}

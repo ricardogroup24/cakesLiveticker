@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Soccer{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+    <style>
+        .wrapper {
+            position: relative;
+            margin: 1em auto;
+            max-width: 800px;
+            width: 95%;
+            font: 18px/1.5 sans-serif;
+        }
+        .bold-row {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .player-image {
+            max-height: 75px;
+            max-width: 75px;
+        }
+    </style>
+
+    <div class="wrapper">
+        <div class="table-container">
+            <table style="display: inline-table; width: 45%; vertical-align: top;" class="table table-hover">
+                <caption>Standings of {{ year }}</caption>
+                <thead class="thead-dark">
+                <tr>
+                    {% for key in keys %}
+                        {% if key != 'teamId' %}  {# Überspringen Sie die Team-ID Zeile #}
+                            <th>{{ key }}</th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in table %}
+                    {% set rowClass = '' %}
+                    {% if row.position == 1 %}
+                        {% set rowClass = 'table-info' %}
+                    {% elseif row.position > 1 and row.position <= 4 %}
+                        {% set rowClass = 'table-primary' %}
+                    {% elseif row.position > 4 and row.position <= 6 %}
+                        {% set rowClass = 'table-warning' %}
+                    {% elseif row.position == 7 %}
+                        {% set rowClass = 'table-success' %}
+                    {% elseif row.position == 16 %}
+                        {% set rowClass = 'table-secondary' %}
+                    {% elseif row.position >= 17 %}
+                        {% set rowClass = 'table-danger' %}
+                    {% endif %}
+                    {% if row.teamId == userTeamId %}
+                        {% set rowClass = rowClass ~ ' bold-row' %}
+                    {% endif %}
+                    <tr class="{{ rowClass }}">
+                        {% for key, value in row %}
+                            {% if key != 'teamId' %}  {# Überspringen Sie die Team-ID Zeile #}
+                                {% if key == 'badge' %}
+                                    <td><img src="{{ value }}" alt="N/V" class="img-thumbnail" style="object-fit: contain;" height="200px" width="200px">
+                                {% else %}
+                                    <td>{{ value }}</td>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="table-container">
+            <table style="position: absolute; top:29px; right: 850px; width: 45%; vertical-align: top;" class="table table-hover">
+                <caption>Scorer of {{ year }}</caption>
+                <thead class="thead-dark">
+                <tr>
+                    {% for key in keysScorer %}
+                        <th>{{ key }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in scorerData %}
+                    <tr>
+                        {% for key, value in row %}
+                            {% if key == 'image' %}
+                                <td><img class="player-image" src="{{ row.image }}" alt="{{ row.name }}">
+                            {% else %}
+                                <td>{{ value }}</td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

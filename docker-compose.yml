@@ -1,0 +1,108 @@
+version: '3.7' # docker version https://docs.docker.com/compose/compose-file/
+
+services:
+  traefik: #traefik image
+    image: traefik:v2.5 # image:version, https://docs.docker.com/compose/compose-file/compose-file-v3/#image
+    #command: --docker --docker.exposedbydefault=false # überschreibt den default-command, https://docs.docker.com/compose/compose-file/compose-file-v3/#command
+    ports: #reservierte port ranges, es können auch protokole und ips angegeben werden eg. 172.0.0.1:2324-23433/tcp, https://docs.docker.com/compose/compose-file/compose-file-v3/#ports
+      - "80:80" #standard http port
+      - "8080:8080" #traefik dashboard
+    #environment: #umgebungsvariablen für den container für standardwerte oder zur interaktion mit anderen images, eg. mysql connection data, https://docs.docker.com/compose/compose-file/compose-file-v3/#environment
+    #  TRAEFIK_HTTPS_COMPRESSION: 'false'
+    #  TRAEFIK_HTTP_COMPRESSION: 'false'
+    volumes: # mount paths für die app im image (ähnlich zu dem wie Linux systeme festplatten mounten?), https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --api.insecure=true # traefik dashboard ist jetzt zugänglich (darf nur im dev env verwendet werden), https://doc.traefik.io/traefik/operations/api/
+      - --entryPoints.web.address=:80 # definiert einen neuen EntryPoint, https://doc.traefik.io/traefik/routing/entrypoints/
+      - --providers.docker=true # sagt Traefik, dass es um docker container geht, https://doc.traefik.io/traefik/routing/providers/docker/
+
+  #redis:
+  #  image: redis:latest
+  #  #container_name: redis
+  #  command: redis-server
+  #  volumes:
+  #    - $PWD/redis-data:/var/lib/redis
+  #    - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+  #  ports:
+  #    - "6379:6379"
+
+  redis:
+    image: redislabs/redismod:latest
+    hostname: 'redis'
+    volumes:
+      - $PWD/redis-data:/var/lib/redis
+      - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+
+  #  rabbitmq:
+  #    image: bitnami/rabbitmq:latest
+  #    environment:
+  #      - RABBITMQ_PASSWORD=secret
+  #    volumes:
+  #      - /path/to/rabbitmq-persistence:/bitnami
+  rabbitmq:
+    image: rabbitmq:3.9.18-management
+    ports: [ "5672", "15672" ]
+    labels:
+      - traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.localhost`)
+      - traefik.http.routers.rabbitmq.entrypoints=web
+
+  app: #app image
+    image: thecodingmachine/php:8.1.12-v4-apache-node18 # image:version, https://docs.docker.com/compose/compose-file/compose-file-v3/#image
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 4196M
+    labels: # meta daten übergeben
+      # - traefik.enable=true # aktivierung der traefik komponente
+      # - traefik.backend=app # treafik interne zuweisung
+      - traefik.http.routers.app.rule=Host(`liveticker.localhost`) # traefik url zuweisung
+    environment: #umgebungsvariablen für den container für standardwerte oder zur interaktion mit anderen images, eg. mysql connection data, https://docs.docker.com/compose/compose-file/compose-file-v3/#enviro
+      APACHE_DOCUMENT_ROOT: "public/" # umgebungsvariabel für das public directory (das öffentlich zugängliche verzeichnis)
+      PHP_EXTENSION_XDEBUG: "1" # aktivierung der erweiterung eines php debuggers - xdebug
+      PHP_INI_MEMORY_LIMIT: "6G" # die maximale erlaubte speichermenge, die ein php script belegen darf
+      PHP_INI_MAX_INPUT_VARS: "5000" # die maximale erlaubte form post input values
+      PHP_EXTENSION_GD: "1" # aktivierung einer erweiterung, die grafiken dynamisch erstellen und bearbeiten kann - gd
+      PHP_EXTENSION_INTL: "1" # aktivierung einer erweiterung, die grafiken dynamisch erstellen und bearbeiten kann - gd
+      PHP_EXTENSIONS: intl curl amqp mbstring imap
+      # Symfony
+      APP_ENV: "dev" # art der entwicklungsumgebung für das symfony framework
+      APP_SECRET: "2adc7663dc7cfe6e32ac383d272baf8c"
+      DATABASE_URL: "mysql://symfony:symfony@mysql:3306/symfony" #db url
+      #Others
+      TZ: Europe/Berlin
+    volumes: # mount paths für die app im image, https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes
+      - .:/var/www/html:rw
+
+  mysql: # mysql image
+    image: mysql:latest # image:version, https://docs.docker.com/compose/compose-file/compose-file-v3/#image
+    environment: #umgebungsvariablen für den container für standardwerte oder zur interaktion mit anderen images, eg. mysql connection data, https://docs.docker.com/compose/compose-file/compose-file-v3/#enviro
+      MYSQL_ROOT_PASSWORD: "secret" # umgebungsvariabel für das mysql root passwort
+      MYSQL_DATABASE: "symfony" # umgebungsvariabel für die gewünschte db
+      MYSQL_USER: "symfony" # umgebungsvariabel für den mysql user
+      MYSQL_PASSWORD: "symfony" # umgebungsvariabel für das mysql user passwort
+    command: --max_allowed_packet=67108864 # erlaubte maximale größe einer SQL query
+    volumes: # mount paths für die app im image, https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes
+      - mysql_data:/var/lib/mysql
+      - ./dev-ops/services/mysql/utf8mb4.cnf:/etc/mysql/conf.d/utf8mb4.cnf:ro
+
+  phpmyadmin: # myphpadmin image
+    image: phpmyadmin/phpmyadmin:5.1.1 # image:version, https://docs.docker.com/compose/compose-file/compose-file-v3/#image
+    labels: # meta daten übergeben
+      #- traefik.enable=true
+      #- traefik.backend=phpmyadmi
+      #- traefik.frontend.rule=Host:phpmyadmin.localhost
+      - traefik.http.routers.phpmyadmin.rule=Host(`phpmyadmin.localhost`) #http routingn für phpmyadmin anstatt .frontend.rule, https://doc.traefik.io/traefik/routing/routers/
+      - traefik.http.routers.phpmyadmin.entrypoints=web
+    environment: #umgebungsvariablen für den container für standardwerte oder zur interaktion mit anderen images, eg. mysql connection data, https://docs.docker.com/compose/compose-file/compose-file-v3/#enviro
+      PMA_HOST: "mysql" # myphpadmin host addresse
+      PMA_USER: "symfony" # myphpadmin user
+      PMA_PASSWORD: "symfony" # myphpadmin passwort für user
+    ports:
+      - '8079:80'
+
+volumes: # mount paths für die app im image, https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes
+  mysql_data:
+    driver: local

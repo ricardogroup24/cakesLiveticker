@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Formula 1{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+    <style>
+        .wrapper {
+            position: relative;
+            margin: 1em auto;
+            max-width: 800px;
+            width: 95%;
+            font: 18px/1.5 sans-serif;
+        }
+        .driver-image {
+            max-height: 75px;
+            max-width: 75px;
+        }
+        .constructor-image {
+            max-height: 50px;
+            max-width: 50px;
+        }
+    </style>
+
+    <div class="wrapper">
+        <div class="table-container">
+            <table style="display: inline-table; width: 45%; vertical-align: top;" class="table table-striped table-hover">
+                <caption>List of driver of {{ year }}</caption>
+                <thead class="thead-dark">
+                <tr>
+                    {% for h in keys %}
+                        <th>{{ h }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for x in table %}
+                    {% if x.position == 1 %}
+                        <tr class="table-warning">
+                    {% else %}
+                        <tr>
+                    {% endif %}
+                    {% for key, y in x %}
+                        {% if key == 'image' %}
+                        <td><img class="driver-image" src="{{ x.image }}" alt="{{ x.firstName }} {{ x.lastName }}">
+                    {% else %}
+                        <td>{{ y }}</td>
+                        {% endif %}
+                    {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="table-container">
+            <table style="position: absolute; top: 0; right: 850px; width: 45%; vertical-align: top;" class="table table-hover">
+                <caption>Constructors of {{ year }}</caption>
+                <thead class="thead-dark">
+                <tr>
+                    {% for key in keysConstructor %}
+                        <th>{{ key }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in constructorData %}
+                    <tr>
+                        {% for key, value in row %}
+                            {% if key == 'image' %}
+                        <td><img class="constructor-image" src="{{ row.image }}" alt="{{ row.name }}">
+                            {% else %}
+                        <td>{{ value }}</td>
+                        {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

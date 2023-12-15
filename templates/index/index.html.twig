@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello SoccerController!{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+    <style>
+        .wrapper {
+            margin: 1em auto;
+            max-width: 800px;
+            width: 95%;
+            font: 18px/1.5 sans-serif;
+        }
+        .logo {
+            border-radius: 40%
+        }
+    </style>
+
+
+    <div class="wrapper">
+        <div>
+            <table class="table table-hover">
+                <caption>Standings of {{ year }}</caption>
+                <thead class="thead-dark">
+                <tr>
+                    {% for key in keys %}
+                        <th>{{ key }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in table %}
+                    {% if row.position == 1 %}
+                        <tr class="table-info">
+                    {% elseif row.position > 1 and row.position <= 4 %}
+                        <tr class="table-primary">
+                    {% elseif row.position > 4 and row.position <= 6 %}
+                        <tr class="table-warning">
+                    {% elseif row.position == 7 %}
+                        <tr class="table-success">
+                    {% elseif row.position == 16 %}
+                        <tr class="table-secondary">
+                    {% elseif row.position >= 17 %}
+                        <tr class="table-danger">
+                    {% else %}
+                        <tr>
+                    {% endif %}
+                    {% for y in row %}
+                        {% if y == row.badge %}
+                            <td><img src="{{ row.badge }}" alt="N/V" class="img-thumbnail" height="200px" width="200px">
+                        {% else %}
+                            <td>{{ y }}</td>
+                        {% endif %}
+                    {% endfor %}
+                    </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
